@@ -45,6 +45,12 @@ def render_markdown(md_text)
     markdown.render(md_text)
 end
 
+def create_document(name, content = "")
+  File.open(File.join(content_path, name), "w") do |file|
+    file.write(content)
+  end
+end
+
 
 # Sinatra Config =============================
 configure do
@@ -93,7 +99,7 @@ get "/:filename/edit" do
   erb :file_edit, layout: :layout
 end
 
-post "/:filename" do
+post "/:filename/edit" do
   @filename = params[:filename]
   new_content = params[:content]
   file_path = File.join(CONTENT_PATH, @filename)
@@ -103,35 +109,35 @@ post "/:filename" do
   redirect "/"
 end
 
+get "/new" do
+  erb :file_new, layout: :layout
+end
+
+post "/new" do
+  new_filename = params[:new_filename].to_s
+  if new_filename.size == 0
+    session[:message] = "A name is required."
+    status 422
+    erb :file_new, layout: :layout
+  else
+    create_document(new_filename, content = "")
+    session[:message] = "#{new_filename} was created."
+
+    redirect "/"
+  end
+end
+
+
 
 
 =begin ++++++++++++++++++
-
-When a message is displayed to a user, that message should appear against a yellow background
-- make a css file
-- define id in css file
-
-
-Messages should disappear if the page they appear on is reloaded.
-- need to delete messages from hash when called
-
-
-Text files should continue to be displayed by the browser as plain text.
-- Change up my example files for different set
-- Nothing needed here right?
-
-
-The entire site (including markdown files, but not text files) should be displayed in a sans-serif typeface.
-- not sure on this
-
-
-
-
 
 
 ++++++++++++++++++
 ==========================================
 Open items to address:
 - When nav to index, does not pick up language as english
+- Favicon is not showing up in browser
+- Refactor it
 
 =end
