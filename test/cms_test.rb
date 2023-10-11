@@ -48,7 +48,7 @@ class CMSTest < Minitest::Test
     get "/history.txt/view"
 
     assert_equal 200, last_response.status
-    assert_equal "text/plain", last_response["Content-Type"]
+    assert_equal "text/html", last_response["Content-Type"]
     assert_includes last_response.body, "is in the history"
   end
 

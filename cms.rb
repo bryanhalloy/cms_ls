@@ -72,13 +72,12 @@ get "/:filename/view" do
   if get_files_info.keys.include?(filename)
     file_path = File.join(CONTENT_PATH, filename)
     file_contents = File.read(file_path)
-  
+
+    headers["Content-Type"] = "text/html"
     if get_files_info[params[:filename]][:extension] == ".md"
-      headers["Content-Type"] = "text/html"
       render_markdown(file_contents)
     else
-      headers["Content-Type"] = "text/plain"
-      file_contents
+      erb file_contents
     end
   
   else
@@ -108,18 +107,31 @@ end
 
 =begin ++++++++++++++++++
 
+When a message is displayed to a user, that message should appear against a yellow background
+- make a css file
+- define id in css file
+
+
+Messages should disappear if the page they appear on is reloaded.
+- need to delete messages from hash when called
+
+
+Text files should continue to be displayed by the browser as plain text.
+- Change up my example files for different set
+- Nothing needed here right?
+
+
+The entire site (including markdown files, but not text files) should be displayed in a sans-serif typeface.
+- not sure on this
+
+
+
+
+
 
 ++++++++++++++++++
-=end 
-
-
-
-
-
-
-=begin ==========================================
+==========================================
 Open items to address:
-- What if given a file that doesnt exist
 - When nav to index, does not pick up language as english
 
 =end
