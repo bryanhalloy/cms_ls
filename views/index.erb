@@ -1,7 +1,10 @@
 <ul>
   <% @content_files.each do |file, file_info| %>
     <li>
-      <a href="<%= file_info[:url_view] %>"><%= file_info[:name] %><a>  (<a href="<%= file_info[:url_edit] %>">edit</a>)
+      <a href="<%= file_info[:url_view] %>"><%= file_info[:name] %><a>  (<a href="<%= file_info[:url_edit] %>">edit</a>) 
+      <form class="inline" method="post" action="<%= file_info[:url_delete] %>"> 
+        <button type="submit">delete</button>
+      </form>
     </li>
   <% end %>
 </ul>

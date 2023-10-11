@@ -33,7 +33,8 @@ def get_files_info
                   extension: File.extname(path), 
                   full_path: path,
                   url_view: "/#{filename}/view",
-                  url_edit: "/#{filename}/edit"
+                  url_edit: "/#{filename}/edit",
+                  url_delete: "/#{filename}/delete"
     }
     files_info_hash[filename] = file_hash
   end
@@ -127,10 +128,21 @@ post "/new" do
   end
 end
 
+post "/:filename/delete" do
+  filename_to_delete = params[:filename]
+  file_path = File.join(CONTENT_PATH, filename_to_delete)
+  File.delete(file_path)
+  session[:message] = "#{filename_to_delete} has been deleted."
+
+  redirect "/"
+end
+
 
 
 
 =begin ++++++++++++++++++
+
+
 
 
 ++++++++++++++++++
