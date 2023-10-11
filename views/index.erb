@@ -10,3 +10,11 @@
 </ul>
 
 <a href="/new">New Document</a>
+
+<div class="signedin_note">
+  <p>You are signed in as <%= session[:username] %>.</p>
+
+  <form method="post" action="/users/logout">
+    <button type="sign_out">Sign Out</button>
+  </form>
+</div>

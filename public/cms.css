@@ -11,3 +11,8 @@ body {
 form.inline {
   display: inline;
 }
+
+.signedin_note {
+  font-style: italic;
+  font-size: 10px;
+}

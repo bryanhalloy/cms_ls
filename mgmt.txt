@@ -1,0 +1,41 @@
+
+== When a signed-out user views the index page of the site, they should see a "Sign In" link.
+== create /users/login path
+== in / path, first check if session :login status is true. If yes, proceed. If no, only render the signin link (erb manipulation). 
+
+
+When a user clicks the "Sign In" button, they should be taken to a new page with a sign in form. The form should contain a text input labeled "Username" and a password input labeled "Password". The form should also contain a submit button labeled "Sign In":
+- in the new login path, make standard form as described
+
+
+When a user enters the username "admin" and password "secret" into the sign in form and clicks the "Sign In" button, they should be signed in and redirected to the index page. A message should display that says "Welcome!":
+- check if login credentials match a constant
+- set login state to true in session
+- set welcome message
+- set session username
+- if yes, redirect to /
+
+
+When a user enters any other username and password into the sign in form and clicks the "Sign In" button, the sign in form should be redisplayed and an error message "Invalid credentials" should be shown. The username they entered into the form should appear in the username input.
+- generate error message
+- store username entered
+- reload page
+- pre-fill username
+
+When a signed-in user views the index page, they should see a message at the bottom of the page that says "Signed in as $USERNAME.", followed by a button labeled "Sign Out".
+- render on erb (which one?)
+- make italicised in css. 
+- make a button
+
+When a signed-in user clicks this "Sign Out" button, they should be signed out of the application and redirected to the index page of the site. They should see a message that says "You have been signed out.".
+- set sign status to false
+- clear usename from session data
+- generate session message
+
+
+
+==========================================
+Open items to address:
+- When nav to index, does not pick up language as english
+- Favicon is not showing up in browser
+- Refactor it

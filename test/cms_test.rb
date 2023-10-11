@@ -22,6 +22,10 @@ class CMSTest < Minitest::Test
     end
   end
 
+  def execute_login
+    post "/users/login", username: "admin", password: "secret"
+  end
+  
   def setup
     FileUtils.mkdir_p(content_path)
     create_document("about.md", "##The International Space Station")
@@ -35,6 +39,8 @@ class CMSTest < Minitest::Test
   end
 
   def test_index
+    execute_login
+
     get "/"
 
     assert_equal 200, last_response.status
@@ -102,6 +108,8 @@ class CMSTest < Minitest::Test
   end
 
   def test_create_new_document
+    execute_login
+    
     post "/new", new_filename: "test.txt"
     assert_equal 302, last_response.status
 
@@ -130,6 +138,42 @@ class CMSTest < Minitest::Test
 
     get "/"
     refute_includes last_response.body, "test.txt"
+  end
+
+
+  def test_signin_form
+    get "/users/login"
+
+    assert_equal 200, last_response.status
+    assert_includes last_response.body, "<input"
+    assert_includes last_response.body, %q(<button type="submit")
+  end
+
+  def test_signin
+    post "/users/login", username: "admin", password: "secret"
+    assert_equal 302, last_response.status
+
+    get last_response["Location"]
+    assert_includes last_response.body, "Welcome"
+    assert_includes last_response.body, "signed in as admin"
+  end
+
+  def test_signin_with_bad_credentials
+    post "/users/login", username: "guest", password: "shhhh"
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "Invalid credentials"
+  end
+
+  def test_signout
+    post "/users/login", username: "admin", password: "secret"
+    get last_response["Location"]
+    assert_includes last_response.body, "Welcome"
+
+    post "/users/logout"
+    get last_response["Location"]
+
+    assert_includes last_response.body, "You have been signed out"
+    assert_includes last_response.body, "sign in"
   end
   
 end

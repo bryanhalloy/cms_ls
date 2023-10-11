@@ -68,8 +68,12 @@ end
 
 # Sinatra Paths =============================
 get "/" do
-  @content_files = get_files_info
-  erb :index, layout: :layout
+  if !!session[:logged_in]
+    @content_files = get_files_info
+    erb :index, layout: :layout
+  else
+    erb :user_login_prompt, layout: :layout
+  end
 end
 
 
@@ -137,19 +141,28 @@ post "/:filename/delete" do
   redirect "/"
 end
 
+get "/users/login" do
+  erb :user_login_input
+end
 
+post "/users/login" do
+  username = params[:username]
+  session[:username] = username
+  if username == "admin" && params[:password] == "secret"
+    session[:logged_in] = true
+    session[:message] = "Welcome!"
+    redirect "/"
+  else
+    session[:logged_in] = false
+    session[:message] = "Invalid credentials"
+    status 422
+    erb :user_login_input
+  end
+end
 
-
-=begin ++++++++++++++++++
-
-
-
-
-++++++++++++++++++
-==========================================
-Open items to address:
-- When nav to index, does not pick up language as english
-- Favicon is not showing up in browser
-- Refactor it
-
-=end
+post "/users/logout" do
+  session[:logged_in] = false
+  session[:username] = nil
+  session[:message] = "You have been signed out."
+  redirect "/"
+end
