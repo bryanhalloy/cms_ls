@@ -16,6 +16,14 @@ class CMSTest < Minitest::Test
     Sinatra::Application
   end
 
+  def session
+    last_request.env["rack.session"]
+  end
+
+  def admin_session
+    { "rack.session" => { username: "admin", logged_in: true } }
+  end
+
   def create_document(name, content = "")
     File.open(File.join(content_path, name), "w") do |file|
       file.write(content)
@@ -39,9 +47,10 @@ class CMSTest < Minitest::Test
   end
 
   def test_index
-    execute_login
+    # execute_login   # old way of executing login
+    # get "/"
 
-    get "/"
+    get "/", {}, {"rack.session" => { username: "admin", logged_in: true } }
 
     assert_equal 200, last_response.status
     assert_equal "text/html;charset=utf-8", last_response["Content-Type"]
@@ -51,7 +60,7 @@ class CMSTest < Minitest::Test
   end
 
   def test_view_history
-    get "/history.txt/view"
+    get "/history.txt/view", {}, admin_session 
 
     assert_equal 200, last_response.status
     assert_equal "text/html", last_response["Content-Type"]
@@ -59,17 +68,19 @@ class CMSTest < Minitest::Test
   end
 
   def test_nonexistent_document
-    get "/doesntoexist.file/view"
+    get "/doesntoexist.file/view", {}, admin_session
     assert_equal 302, last_response.status
+    assert_equal "doesntoexist.file does not exist.", session[:message]
 
     get last_response["Location"]
 
     assert_equal 200, last_response.status
     assert_includes last_response.body, "doesntoexist.file does not exist"
+    
   end
 
   def test_display_markdown
-    get "/about.md/view"
+    get "/about.md/view", {}, admin_session
 
     assert_equal 200, last_response.status
     assert_equal "text/html", last_response["Content-Type"]
@@ -90,6 +101,7 @@ class CMSTest < Minitest::Test
     post "/changes.txt/edit", content: added_string
 
     assert_equal 302, last_response.status
+    assert_equal "changes.txt has been updated.", session[:message]
 
     get last_response["Location"]
     assert_includes last_response.body, "changes.txt has been updated"
@@ -100,7 +112,7 @@ class CMSTest < Minitest::Test
   end
 
   def test_view_new_document_form
-    get "/new"
+    get "/new", {}, admin_session
 
     assert_equal 200, last_response.status
     assert_includes last_response.body, "<input"
@@ -108,20 +120,19 @@ class CMSTest < Minitest::Test
   end
 
   def test_create_new_document
-    execute_login
-    
-    post "/new", new_filename: "test.txt"
+    post "/new", {new_filename: "test.txt"}, admin_session
     assert_equal 302, last_response.status
+    assert_equal "test.txt was created.", session[:message]
 
     get last_response["Location"]
     assert_includes last_response.body, "test.txt was created"
 
-    get "/"
+    get "/", {}, {"rack.session" => { username: "admin", logged_in: true } }
     assert_includes last_response.body, "test.txt"
   end
 
   def test_create_new_document_without_filename
-    post "/new", new_filename: ""
+    post "/new", {new_filename: ""}, admin_session
     assert_equal 422, last_response.status
     assert_includes last_response.body, "A name is required"
   end
@@ -129,9 +140,11 @@ class CMSTest < Minitest::Test
   def test_deleting_document
     create_document("test.txt")
 
-    post "/test.txt/delete"
+    post "/test.txt/delete", {}, admin_session
 
     assert_equal 302, last_response.status
+    assert_equal "test.txt has been deleted.", session[:message]
+
 
     get last_response["Location"]
     assert_includes last_response.body, "test.txt has been deleted"
@@ -152,6 +165,8 @@ class CMSTest < Minitest::Test
   def test_signin
     post "/users/login", username: "admin", password: "secret"
     assert_equal 302, last_response.status
+    assert_equal "Welcome!", session[:message]
+    assert_equal "admin", session[:username]
 
     get last_response["Location"]
     assert_includes last_response.body, "Welcome"
@@ -161,6 +176,7 @@ class CMSTest < Minitest::Test
   def test_signin_with_bad_credentials
     post "/users/login", username: "guest", password: "shhhh"
     assert_equal 422, last_response.status
+    # assert_nil session[:username] Ignoring this text. Not how I set up my program. 
     assert_includes last_response.body, "Invalid credentials"
   end
 
@@ -174,6 +190,15 @@ class CMSTest < Minitest::Test
 
     assert_includes last_response.body, "You have been signed out"
     assert_includes last_response.body, "sign in"
+    assert_nil session[:username]
   end
-  
+
+  def test_editing_document_signed_out
+    create_document "changes.txt"
+
+    get "/changes.txt/edit"
+
+    assert_equal 302, last_response.status
+    assert_equal "You must be signed in to do that.", session[:message]
+  end
 end

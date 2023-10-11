@@ -52,6 +52,18 @@ def create_document(name, content = "")
   end
 end
 
+def logged_in?(session_hash)
+  !!session_hash[:logged_in]
+end
+
+def redirect_if_not_signedin(session_hash)
+  unless logged_in?(session_hash)
+    session_hash[:message] = "You must be signed in to do that."
+    redirect "/"
+  end
+end
+
+
 
 # Sinatra Config =============================
 configure do
@@ -68,7 +80,7 @@ end
 
 # Sinatra Paths =============================
 get "/" do
-  if !!session[:logged_in]
+  if logged_in?(session)
     @content_files = get_files_info
     erb :index, layout: :layout
   else
@@ -78,6 +90,8 @@ end
 
 
 get "/:filename/view" do  
+  redirect_if_not_signedin(session)
+  
   filename = params[:filename]
   
   if get_files_info.keys.include?(filename)
@@ -98,6 +112,8 @@ get "/:filename/view" do
 end
 
 get "/:filename/edit" do
+  redirect_if_not_signedin(session)
+  
   @filename = params[:filename]
   file_path = File.join(CONTENT_PATH, @filename)
   @file_contents = File.read(file_path)
@@ -105,6 +121,8 @@ get "/:filename/edit" do
 end
 
 post "/:filename/edit" do
+  redirect_if_not_signedin(session)
+  
   @filename = params[:filename]
   new_content = params[:content]
   file_path = File.join(CONTENT_PATH, @filename)
@@ -115,10 +133,14 @@ post "/:filename/edit" do
 end
 
 get "/new" do
+  redirect_if_not_signedin(session)
+  
   erb :file_new, layout: :layout
 end
 
 post "/new" do
+  redirect_if_not_signedin(session)
+  
   new_filename = params[:new_filename].to_s
   if new_filename.size == 0
     session[:message] = "A name is required."
@@ -133,6 +155,8 @@ post "/new" do
 end
 
 post "/:filename/delete" do
+  redirect_if_not_signedin(session)
+  
   filename_to_delete = params[:filename]
   file_path = File.join(CONTENT_PATH, filename_to_delete)
   File.delete(file_path)
