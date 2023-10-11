@@ -1,0 +1,7 @@
+{
+  admin: $2a$12$nZlrIHSuGIcrsl8IN3.qwuoA1LMFrXdxAIsnu.0cTIXkb1d.vm16y,
+  bryan: $2a$12$O7d1R.dXAHKRPhdHgCMNUe2ZZBObpmvcZGI5U.n9qRoWg8fRbJaUy,
+  zebra: $2a$12$Afh1vOh3XueQYaVe2RYX/OtMKI4Yr1XVI12yItRupJfhvaC6BKrdS
+}
+
+# BCrypt::Password.create("bryanpassword")

@@ -177,7 +177,7 @@ class CMSTest < Minitest::Test
     post "/users/login", username: "guest", password: "shhhh"
     assert_equal 422, last_response.status
     # assert_nil session[:username] Ignoring this text. Not how I set up my program. 
-    assert_includes last_response.body, "Invalid credentials"
+    assert_includes last_response.body, "Invalid username"
   end
 
   def test_signout

@@ -3,6 +3,8 @@ require "sinatra/reloader"
 require "sinatra/content_for"
 require "tilt/erubis"
 require "redcarpet"
+require 'yaml'
+require 'bcrypt'
 
 
 
@@ -10,6 +12,27 @@ require "redcarpet"
 CONTENT_DIRECTORY_NAME = "content"
 TEST_FOLDER_NAME = "test"
 ROOT_PATH = File.expand_path("..", __FILE__)
+
+
+def load_user_credentials
+  credentials_path = if ENV["RACK_ENV"] == "test"
+    File.expand_path("../test/users.yml", __FILE__)
+  else
+    File.expand_path("../users.yml", __FILE__)
+  end
+  YAML.load_file(credentials_path)
+end
+
+def valid_credentials?(username, password)
+  credentials = load_user_credentials
+
+  if credentials.key?(username)
+    bcrypt_password = BCrypt::Password.new(credentials[username])
+    bcrypt_password == password
+  else
+    false
+  end
+end
 
 def content_path
   if ENV["RACK_ENV"] == "test"
@@ -172,15 +195,24 @@ end
 post "/users/login" do
   username = params[:username]
   session[:username] = username
-  if username == "admin" && params[:password] == "secret"
-    session[:logged_in] = true
-    session[:message] = "Welcome!"
-    redirect "/"
-  else
-    session[:logged_in] = false
-    session[:message] = "Invalid credentials"
+
+  users_hash = load_user_credentials
+
+  if !users_hash.keys.include?(username)
+    session[:message] = "Invalid username"
     status 422
     erb :user_login_input
+  else
+    if valid_credentials?(username, params[:password])
+      session[:logged_in] = true
+      session[:message] = "Welcome!"
+      redirect "/"
+    else
+      session[:logged_in] = false
+      session[:message] = "Invalid credentials"
+      status 422
+      erb :user_login_input
+    end
   end
 end
 
